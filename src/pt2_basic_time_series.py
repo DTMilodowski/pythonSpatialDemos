@@ -89,8 +89,10 @@ Part 2B: For a single location, extract the pixel value
 Look at the figure plotted in the previous step. Find an area you think might be
 interesting and extract the pixel value associate with this
 """
-target_x = 453841.0
-target_y = 6377702.0
+target_x = 458826.0
+target_y = 6383595.0
+target_x = 458297.0
+target_y = 6382218.0
 
 """
 Find the nearest pixel to your target point. This might be a little fiddly!
@@ -150,18 +152,24 @@ print("number of scenes = {}".format(len(dates)))
 VHvalues = np.zeros(len(scenes_vh))*np.nan # create an empty array (nodata values)
 VVvalues = np.zeros(len(scenes_vv))*np.nan
 for ii,date in enumerate(dates):
+    print('progress: %.1f percent' % ((ii+1)/float(len(dates))*100),end='\r')
     # open file and store data in an xarray called agb
     vhfile = scenes_vh[ii]
     vvfile = scenes_vv[ii]
-    s1VH_iter = xr.open_rasterio(vhfile).sel(band=1)
-    s1VV_iter = xr.open_rasterio(vvfile).sel(band=1)
+    if ii== 0:
+        s1VH_iter = xr.open_rasterio(vhfile).sel(band=1)
+        s1VV_iter = xr.open_rasterio(vvfile).sel(band=1)
 
-    nearest_column = np.argmin(np.abs(s1.x.values-target_x))
-    nearest_row = np.argmin(np.abs(s1.y.values-target_y))
+        nearest_column = np.argmin(np.abs(s1.x.values-target_x))
+        nearest_row = np.argmin(np.abs(s1.y.values-target_y))
     
-    VHvalues[ii]=s1VH_iter.values[nearest_column,nearest_row]
-    VVvalues[ii]=s1VV_iter.values[nearest_column,nearest_row]
-    
+        VHvalues[ii]=s1VH_iter.values[nearest_column,nearest_row]
+        VVvalues[ii]=s1VV_iter.values[nearest_column,nearest_row]
+    else:
+        s1VH_iter = xr.open_rasterio(vhfile)[:,nearest_column,nearest_row].sel(band=1)
+        s1VV_iter = xr.open_rasterio(vvfile)[:,nearest_column,nearest_row].sel(band=1)
+        VHvalues[ii]=s1VH_iter.values
+        VVvalues[ii]=s1VV_iter.values
 # Great, now we have a list of dates, and the VH and VV backscatter amplitudes on
 # those dates. Let's make a plot and see what they look like
 # Note for colours, I've taken colour-blind friendly combinations
